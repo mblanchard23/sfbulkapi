@@ -14,8 +14,8 @@ You should pay particular attention to the section about "When to use Bulk API" 
 
 4) Retrieve results (when querying)
 
-EXAMPLES:
-Example 1) Run SOQL Query
+<b>EXAMPLES:</b> <br>
+1) <i>Run SOQL Query </i>
 
-Example 2) Update Opportunity records
+2) <i>Update Opportunity records </i>
 
