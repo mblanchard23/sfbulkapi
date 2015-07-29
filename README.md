@@ -19,7 +19,7 @@ You should pay particular attention to the section about "When to use Bulk API" 
 <b>METHODS</b><br>
 .login(username,password) - password needs to be concatenated with the token<br>
 .refreshToken() - refreshes the sessionId<br>
-.getheaders(content_type) - Creates headers dictionary used with every API request. Content type defaults application/xml<br>
+.getheaders(content_type) - Creates headers dictionary used with every API request. Defaults to application/xml<br>
 .isExpired() - returns a T/F value based on current time vs expiry time<br>
 
 
