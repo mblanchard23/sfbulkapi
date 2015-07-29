@@ -39,7 +39,8 @@ while processing == True:
 	processing = False
 	print 'Refresh number %d' % attemptnumber
 	job.updatebatch()
-	print job.batches #Informtion for each batch is stored in the dictionary job.batches with batch ID as key
+	#Batch info added to the dictionary job.batches with batch ID as the key
+	print job.batches 
 	for key in job.batches:
 		if job.batches[key]['state'] in ('Queued','InProgress'):
 			processing = True
