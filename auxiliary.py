@@ -91,7 +91,7 @@ class sfSession:
 
 
 class sfJob:
-  def __init__(self,operation,object,session,jobid=""):
+  def __init__(self,operation='',object='',session='',jobid=""):
 
     #Create new job
     if not jobid:
@@ -110,12 +110,17 @@ class sfJob:
                                  
       response = requests.post(url=url,headers=headers,data=postdata,verify=True)
       self.updateSelf(response.text)
-      insertstr = "insert into jobs values('%s','%s','%s')" % (self.jobid,self.state,self.createdDT)
+      insertstr = "insert into jobs values('%s','%s','%s','%s','%s')" % (self.jobid,self.state,self.createdDT,self.operation,self.object)
       lc.execute(insertstr)
       conn.commit()
 
-    #Retrieve old job
-    #else:
+    #Retrieve old job. Once Job ID is passed, all the regular Job attributes of the old job are updated
+    else:
+      self.jobid = jobid
+      self.session = session
+      self.updateSelf(self.getJobUpdate())
+      self.operation= 'Unknown'
+      self.object = 'Unknown'
 
   def updateSelf(self,xml_response_text):
 
@@ -137,7 +142,8 @@ class sfJob:
     self.apiActiveProcessingTime = getXMLData(xml_response_text,'apiActiveProcessingTime')
     self.apexProcessingTime = getXMLData(xml_response_text,'apexProcessingTime')
     self.jobInfo = getXMLData(xml_response_text,'jobInfo')
-    self.keyinfo = "ID: {jobid}\nOperation: {operation}\nSalesforce Object: {sfobject}".format(jobid=self.jobid,operation=self.operation,sfobject=self.object)
+    self.operation = getXMLData(xml_response_text,'operation')
+    self.object = getXMLData(xml_response_text,'object')
     return None
 
 
@@ -244,10 +250,37 @@ class sfJob:
       conn.commit()
     return response.text
 
+    def describe(self):
+       description = "ID: {jobid}\nOperation: {operation}\nSalesforce Object: {sfobject}"
+       return description.format(jobid=self.jobid,operation=self.operation,sfobject=self.object)
 
 
-
-def cleanup():
-  lc.execute("select jobid from jobs where state = 'Open'")
+def cleanup(auto=False):
+  lc.execute("select jobid,operation,object,created_at from jobs where state = 'Open'")
   results = lc.fetchall()
-  return results
+  print results
+
+
+  if results:
+    
+    if auto:    
+      sf = sfSession()
+      for row in results:
+        jobid = row[0]
+        job = sfJob(jobid=jobid,session=sf)
+        job.closeJob()
+      return None
+    else:
+      return None
+
+    user_input = raw_input("Would you like to close these jobs? (Y/N): ")
+
+    if user_input.upper() == 'Y':
+      sf = sfSession()
+      for row in results:
+        jobid = row[0]
+        job = sfJob(jobid=jobid,session=sf)
+        job.closeJob()
+      return None
+    else:
+      return None
