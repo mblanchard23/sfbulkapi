@@ -4,7 +4,7 @@ Full documentation for Salesforce Bulk API can be found here: https://developer.
 
 You should pay particular attention to the section about "When to use Bulk API" and How to Structure your Batches.
 
-WORKFLOW
+<b>WORKFLOW</b>
 
 1) Create a Job. A job must relate to a specific operation/verb (QUERY,INSERT,UPSERT,UPDATE,DELETE) and an Object in your Salesforce instance
 
