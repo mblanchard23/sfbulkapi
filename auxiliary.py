@@ -1,3 +1,4 @@
+import time
 import requests
 import settings_file
 import soaprequests
@@ -7,7 +8,7 @@ import sqlite3
 
 my_settings = json.loads(settings_file.settingsdict)
 instance = my_settings['instance']
-conn = sqlite3.connect(my_settings["sqlitedirectory"] + '/jobtracker')
+conn = sqlite3.connect(my_settings["sqlitedirectory"] + '/jobtracker.sqlite')
 lc = conn.cursor()
 
 username = my_settings['username']
@@ -38,7 +39,7 @@ class sfSession:
     self.sessiondetails = self.login(self.username,self.password)
     self.sessionId = self.sessiondetails['sessionId']
     self.expirytime = datetime.datetime.now() + datetime.timedelta(seconds=int(self.sessiondetails['sessionSecondsValid']) - 60) 
-    # Take off 60 seconds to acount for computer time lag (60=overkill?!)
+    # Take off 60 seconds to acount for computer time lag
 
 
 
@@ -74,6 +75,16 @@ class sfSession:
     self.sessionId = self.sessiondetails['sessionID']
     self.expirytime = datetime.datetime.now() + datetime.timedelta(seconds=self.sessiondetails['sessionSecondsValid'] - 60)
 
+  def getheaders(self,content_type="application/xml; charset=UTF-8"):
+
+    if self.isExpired():
+      self.refreshToken()
+  
+    headers = {"X-SFDC-Session": self.sessionId, 
+                 "Content-Type": content_type}
+    return headers
+
+
   def __repr__(self):
     return str(self.sessionId)
 
@@ -94,15 +105,8 @@ class sfJob:
       self.session = session
       self.operation = operation
       self.object = object
-      self.batches = {}
-       
-      if session.isExpired():
-        session.refreshToken()
-        headers = {"X-SFDC-Session": session.sessionId, 
-                 "Content-Type": "application/xml; charset=UTF-8"}
-      else:
-        headers = {"X-SFDC-Session": session.sessionId, 
-                 "Content-Type": "application/xml; charset=UTF-8"}
+      self.batches = {}       
+      headers = self.session.getheaders()
                                  
       response = requests.post(url=url,headers=headers,data=postdata,verify=True)
       self.updateSelf(response.text)
@@ -140,8 +144,9 @@ class sfJob:
   def addbatch(self,postdata):
     session = self.session
     url = "https://" + session.instance + ".salesforce.com/services/async/30.0/job/{jobid}/batch".format(jobid=self.jobid)
-    headers = {"X-SFDC-Session": session.sessionId, 
-               "Content-Type": "text/csv; charset=UTF-8"}
+    # headers = {"X-SFDC-Session": session.sessionId, 
+    #            "Content-Type": "text/csv; charset=UTF-8"}
+    headers = self.session.getheaders('text/csv; charset=UTF-8')
     response = requests.post(url=url,
                              headers = headers,
                              data = postdata,
@@ -160,8 +165,7 @@ class sfJob:
     session = self.session
     url = "https://{instance}.salesforce.com/services/async/30.0/job/{jobid}".format(instance=session.instance,jobid=self.jobid)
 
-    headers = {"X-SFDC-Session": session.sessionId, 
-               "Content-Type": "application/xml; charset=UTF-8"}
+    headers = self.session.getheaders()
 
     response = requests.get(url=url,headers=headers)
     return response.text
@@ -170,8 +174,7 @@ class sfJob:
     session = self.session
     url = "https://{instance}.salesforce.com/services/async/30.0/job/{jobid}/batch/{batchid}"
 
-    headers = {"X-SFDC-Session": session.sessionId, 
-               "Content-Type": "application/xml; charset=UTF-8"}
+    headers = self.session.getheaders()
 
     url = url.format(instance=session.instance,jobid=self.jobid,batchid=batchid)
     response = requests.get(url=url,headers=headers)
@@ -191,42 +194,46 @@ class sfJob:
 
     return None
 
-  def getqueryresultlist(self,batchid):
+  def getresultlists(self,batchid):
     session = self.session
     url = "https://{instance}.salesforce.com/services/async/30.0/job/{jobid}/batch/{batchid}/result"
     url = url.format(instance=session.instance,jobid=self.jobid,batchid=batchid)
-    headers = {"X-SFDC-Session": session.sessionId, 
-           "Content-Type": "application/xml; charset=UTF-8"}
+    headers = self.session.getheaders()
 
     response = requests.get(url=url,headers=headers) # returns results list xml
-    print response.text
+    
     response_expl = response.text.split('<result>')
     result_list = []
     for i in range(1, len(response_expl)):
       result_elem = response_expl[i]
       result_list.append(result_elem.split('</result>')[0])
 
-    return result_list
+    self.batches[batchid]['results'] = result_list 
+    
 
   def getresults(self,batchid,resultid):
+    if 'output' not in self.batches[batchid]:
+      self.batches[batchid]['output'] = []
+
     session = self.session
     url = "https://{instance}.salesforce.com/services/async/30.0/job/{jobid}/batch/{batchid}/result/{resultid}"
     url = url.format(instance=session.instance,jobid=self.jobid,batchid=batchid,resultid=resultid)
     print url
 
-    headers = {"X-SFDC-Session": session.sessionId, 
-       "Content-Type": "application/xml; charset=UTF-8"}
+    headers = self.session.getheaders()
 
     response = requests.get(url=url,headers=headers)
+    self.batches[batchid]['output'].append(response.text)
     return response.text
+
+
 
   def closeJob(self):
     session = self.session
     postdata = soaprequests.closeJobString
     url = "https://" + session.instance + ".salesforce.com/services/async/30.0/job/" + self.jobid
 
-    headers = {"X-SFDC-Session": session.sessionId, 
-               "Content-Type": "application/xml; charset=UTF-8"}
+    headers = self.session.getheaders()
 
     response = requests.post(url=url,headers=headers,data=postdata)
 
