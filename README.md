@@ -15,7 +15,12 @@ You should pay particular attention to the section about "When to use Bulk API" 
 4) Retrieve results (when querying)
 
 <b>EXAMPLES:</b> <br>
-1) <i>Run SOQL Query </i>
+1) <i>Run SOQL Query on the User object </i>
+'''python
+sf = sfSession()
+job = sfJob('query','user',sf)
+
+'''
 
 2) <i>Update Opportunity records </i>
 
