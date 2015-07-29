@@ -16,11 +16,37 @@ You should pay particular attention to the section about "When to use Bulk API" 
 
 <b>EXAMPLES:</b> <br>
 1) <i>Run SOQL Query on the User object </i>
-'''python
+
+```python
 sf = sfSession()
 job = sfJob('query','user',sf)
+job.addbatch('select id,name from user') # Returns SF ID and Fullname for all users
 
-'''
+#Polling the status of the batches
+while processing == True:
+	# All batches must have finished to progress
+	attemptnumber += 1
+	time.sleep(10)
+	processing = False
+	print 'Refresh number %d' % attemptnumber
+	job.updatebatch()
+	print job.batches #Informtion for each batch is stored in the dictionary job.batches with batch ID as key
+	for key in job.batches:
+		if job.batches[key]['state'] in ('Queued','InProgress'):
+			processing = True
+
+#Returns a list of the result IDs and adds them to the
+for key in job.batches:
+	job.getresultlists(key)
+
+for key in job.batches:
+	for resultid in job.batches[key]['results']:
+		job.getresults(key,resultid)
+
+#Call job.batches[batchid]['output'] to get the csv response
+
+
+```
 
 2) <i>Update Opportunity records </i>
 
