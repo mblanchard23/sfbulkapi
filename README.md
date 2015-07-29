@@ -23,7 +23,7 @@ Creates an object storing the users credentials used to authenticate with each A
 .getheaders(content_type) - Creates headers dictionary used with every API request. Defaults to application/xml<br>
 .isExpired() - returns a T/F value based on current time vs expiry time<br>
 
-####<b>sfJob(operation,object,session,jobid)
+####<b>sfJob</b>(operation,object,session,jobid)
 Creates a Job class to handle the Bulk Api Job process. A new job is created if jobid is left blank. Entering an old job id loads a previous job into the class instance
 #####<b>METHODS/PROPERTIES</b><br>
 .addbatch(postdata) - Creates batch and send the data to Salesforce via POST <br>
