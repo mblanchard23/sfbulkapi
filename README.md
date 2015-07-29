@@ -4,7 +4,7 @@ Full documentation for Salesforce Bulk API can be found here: https://developer.
 
 You should pay particular attention to the section about "When to use Bulk API" and How to Structure your Batches.
 
-<b>WORKFLOW</b>
+<header><b>WORKFLOW</b></header>
 
 1) Create a Job. A job must relate to a specific operation/verb (QUERY,INSERT,UPSERT,UPDATE,DELETE) and an Object in your Salesforce instance
 
@@ -14,7 +14,16 @@ You should pay particular attention to the section about "When to use Bulk API" 
 
 4) Retrieve results (when querying)
 
-<b>EXAMPLES:</b> <br>
+<b>CLASSES</b><br>
+<b>sfSession()</b> - <i>Creates an object storing the users credentials used to authenticate with each API call. Upon initiation uses the username, password and security token stored in the settings_file <br>
+<b>METHODS</b><br>
+.login(username,password) - password needs to be concatenated with the token<br>
+.refreshToken() - refreshes the sessionId<br>
+.getheaders(content_type) - Creates headers dictionary used with every API request. Content type defaults application/xml<br>
+.isExpired() - returns a T/F value based on current time vs expiry time<br>
+</i>
+
+<b>EXAMPLES</b> <br>
 1) <i>Run SOQL Query on the User object </i>
 
 ```python
