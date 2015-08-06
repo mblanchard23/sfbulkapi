@@ -1,10 +1,12 @@
 # sfbulkapi
+
 Introduces 2 Python classes sfJob and sfSession to help use the Salesforce Bulk API.
+
 Full documentation for Salesforce Bulk API can be found here: https://developer.salesforce.com/docs/atlas.en-us.api_asynch.meta/api_asynch/
 
 You should pay particular attention to the section about "When to use Bulk API" and How to Structure your Batches.
 
-##<b>WORKFLOW</b>
+## Workflow
 
 1) Create a Job. A job must relate to a specific operation/verb (QUERY,INSERT,UPSERT,UPDATE,DELETE) and an Object in your Salesforce instance
 
@@ -14,29 +16,45 @@ You should pay particular attention to the section about "When to use Bulk API" 
 
 4) Retrieve results (when querying)
 
-##<b>CLASSES</b><br>
-####<b>sfSession()</b> 
+## Classes
+
+### sfSession()
+
 Creates an object storing the users credentials used to authenticate with each API call. Upon initiation uses the username, password and security token stored in the settings_file <br>
-#####<b>METHODS</b><br>
-.login(username,password) - password needs to be concatenated with the token<br>
-.refreshToken() - refreshes the sessionId<br>
-.getheaders(content_type) - Creates headers dictionary used with every API request. Defaults to application/xml<br>
-.isExpired() - returns a T/F value based on current time vs expiry time<br>
 
-####<b>sfJob</b>(operation,object,session,jobid)
+#### Methods
+
+.login(username,password) - password needs to be concatenated with the token
+
+.refreshToken() - refreshes the sessionId
+
+.getheaders(content_type) - Creates headers dictionary used with every API request. Defaults to application/xml
+
+.isExpired() - returns a T/F value based on current time vs expiry time
+
+### sfJob (operation,object,session,jobid)
+
 Creates a Job class to handle the Bulk Api Job process. A new job is created if jobid is left blank. Entering an old job id loads a previous job into the class instance
-#####<b>METHODS/PROPERTIES</b><br>
-.addbatch(postdata) - Creates batch and send the data to Salesforce via POST <br>
-.batches - A dictionary containing all batches in the current job with metadata with Batch ID used as the key <br>
-.updatebatch() - Refreshes the status of the batches running in the current job<br>
-.getresultlists(batchid) - Attempts to retrieve the list of result IDs for the batch, appends to the .batches dictionary<br>
-.getresults(batchid,resultid) - (When querying) Retrieves results for the batch and appends to .batches dictionary <br>
-.closeJob() - Closes the job, no more batches can be added after this method has run<br><br>
 
-Note, most of the metadata for the job is saved as an attribute on the job, for a full list see Bulk API Docs<br>
+#### Methods & Properties
 
-##<b>EXAMPLES</b> <br>
-1) <i>Run SOQL Query on the User object </i>
+.addbatch(postdata) - Creates batch and send the data to Salesforce via POST 
+
+.batches - A dictionary containing all batches in the current job with metadata with Batch ID used as the key 
+
+.updatebatch() - Refreshes the status of the batches running in the current job
+
+.getresultlists(batchid) - Attempts to retrieve the list of result IDs for the batch, appends to the .batches dictionary
+
+.getresults(batchid,resultid) - (When querying) Retrieves results for the batch and appends to .batches dictionary 
+
+.closeJob() - Closes the job, no more batches can be added after this method has run
+
+Note, most of the metadata for the job is saved as an attribute on the job, for a full list see Bulk API Docs
+
+## Examples
+
+1) *Run SOQL Query on the User object*
 
 ```python
 sf = sfSession()
@@ -67,8 +85,7 @@ for key in job.batches:
 
 #Call job.batches[batchid]['output'] to get the csv response
 
-
 ```
 
-2) <i>Update Opportunity records </i>
+2) *Update Opportunity records*
 
