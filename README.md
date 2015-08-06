@@ -89,3 +89,6 @@ for key in job.batches:
 
 2) *Update Opportunity records*
 
+## License
+
+MIT
