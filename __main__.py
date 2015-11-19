@@ -2,8 +2,6 @@ import auxiliary
 from auxiliary import sfSession, sfJob
 import time
 
-def test():
-  pass
 
 def runtest():
   sf = sfSession()
