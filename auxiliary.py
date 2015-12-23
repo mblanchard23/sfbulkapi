@@ -34,9 +34,8 @@ class sfSession:
   def __init__(self,username=username,password=password):
     self.username = username
     self.password = password
-    self.instance = "na10" # Need to get this to populate from sessiondetails
-
     self.sessiondetails = self.login(self.username,self.password)
+    self.instance = self.sessiondetails['instance']
     self.sessionId = self.sessiondetails['sessionId']
     self.expirytime = datetime.datetime.now() + datetime.timedelta(seconds=int(self.sessiondetails['sessionSecondsValid']) - 60) 
     # Take off 60 seconds to acount for computer time lag
@@ -61,6 +60,9 @@ class sfSession:
     session_details['sessionId'] = getXMLData(response.text,'sessionId')
     session_details['passwordExpired'] = getXMLData(response.text,'passwordExpired')
     session_details['sessionSecondsValid'] = getXMLData(response.text,'sessionSecondsValid')
+
+    serverURL = getXMLData(response.text,'serverUrl')
+    session_details['instance'] = serverURL[8:serverURL.find('.salesforce.com')]
 
     return session_details
 
