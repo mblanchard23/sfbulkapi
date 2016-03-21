@@ -7,7 +7,6 @@ import datetime
 import sqlite3
 
 my_settings = settings_file.settingsdict
-instance = my_settings['instance']
 conn = sqlite3.connect(my_settings["sqlitedirectory"] + '/jobtracker.sqlite')
 lc = conn.cursor()
 
