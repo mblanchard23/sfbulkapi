@@ -8,7 +8,7 @@ def runtest():
 
 
   mj = sfJob('query','user',sf)
-  mj.addbatch("select id from user")
+  mj.addbatch("select id from user limit 50")
   mj.closeJob()
   mj.updatebatch()
   print "BATCH RUNDOWN:\n\n" + str(mj.batches)
