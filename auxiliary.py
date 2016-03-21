@@ -11,6 +11,13 @@ instance = my_settings['instance']
 conn = sqlite3.connect(my_settings["sqlitedirectory"] + '/jobtracker.sqlite')
 lc = conn.cursor()
 
+try:
+  lc.execute('select * from jobs') #Check jobs table has been initialised
+except sqlite3.OperationalError:
+  #If not create table
+  lc.execute('create table jobs(jobid varchar(20),state varchar(100),created_at varchar(40),operation varchar(100),object varchar(100))')
+  conn.commit()
+
 username = my_settings['username']
 if my_settings['password']: # Looks for a password by default
   password = my_settings['password'] + my_settings['token'] 
@@ -35,10 +42,13 @@ class sfSession:
     self.username = username
     self.password = password
     self.sessiondetails = self.login(self.username,self.password)
-    self.instance = self.sessiondetails['instance']
-    self.sessionId = self.sessiondetails['sessionId']
-    self.expirytime = datetime.datetime.now() + datetime.timedelta(seconds=int(self.sessiondetails['sessionSecondsValid']) - 60) 
-    # Take off 60 seconds to acount for computer time lag
+    if self.sessiondetails:
+      self.instance = self.sessiondetails['instance']
+      self.sessionId = self.sessiondetails['sessionId']
+      self.expirytime = datetime.datetime.now() + datetime.timedelta(seconds=int(self.sessiondetails['sessionSecondsValid']) - 60) 
+      # Take off 60 seconds to acount for computer time lag
+    else:
+      print 'Unable to Authenticate with Salesforce'
 
 
 
@@ -57,9 +67,14 @@ class sfSession:
                              data = encoded_request,
                              verify=True)
 
+    if getXMLData(response.text,'faultstring'):
+      print getXMLData(response.text,'faultstring')
+      return None
+
     session_details['sessionId'] = getXMLData(response.text,'sessionId')
     session_details['passwordExpired'] = getXMLData(response.text,'passwordExpired')
     session_details['sessionSecondsValid'] = getXMLData(response.text,'sessionSecondsValid')
+    #print response.text
 
     serverURL = getXMLData(response.text,'serverUrl')
     session_details['instance'] = serverURL[8:serverURL.find('.salesforce.com')]
@@ -88,8 +103,10 @@ class sfSession:
 
 
   def __repr__(self):
-    return str(self.sessionId)
-
+    if self.sessionId:
+      return str(self.sessionId)
+    else:
+      return 'Unable to authenticate with Salesforce. Check settings file'
 
 
 class sfJob:
